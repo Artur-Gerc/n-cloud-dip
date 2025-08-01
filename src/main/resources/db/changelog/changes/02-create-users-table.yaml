@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: 02
+      author: ArturGerc
+      changes:
+        - createTable:
+            schemaName: cloud
+            tableName: users
+            columns:
+              - column:
+                  type: bigint
+                  name: id
+                  constraints:
+                    primaryKey: true
+                  autoIncrement: true
+              - column:
+                  type: varchar(60)
+                  name: username
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: password
+                  type: text
+                  constraints:
+                    nullable: false

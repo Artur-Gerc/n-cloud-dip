@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: 'postgres:latest'
+    container_name: postgresql-cloud
+    env_file:
+      - .env
+    ports:
+      - '45432:5432'
+    restart: always
+    volumes:
+      - C:/tmp/postgres-cloud:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio
+    container_name: minio-cloud
+    restart: always
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    env_file:
+      - .env
+    volumes:
+      - C:/tmp/minio-data:/data
+    command: [ "server", "/data", "--console-address", ":9001" ]
+
+  frontend:
+    image: ar4u11/n-cloud-frontend
+    container_name: front-cloud
+    ports:
+      - "8080:80"
+
+  backend:
+    build: .
+    container_name: backend-cloud
+    ports:
+      - "8081:8081"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - minio
