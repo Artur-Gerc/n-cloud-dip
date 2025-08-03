@@ -3,6 +3,7 @@ package net.cloud.unit;
 import net.cloud.dto.AuthenticationRequest;
 import net.cloud.dto.AuthenticationResponse;
 import net.cloud.exception.authException.UserNotFoundOrPasswordIncorrectException;
+import net.cloud.model.User;
 import net.cloud.service.AuthenticationService;
 import net.cloud.security.JWTUtil;
 import org.junit.jupiter.api.Assertions;
@@ -35,11 +36,11 @@ public class AuthenticationServiceTest {
     @InjectMocks
     private AuthenticationService authenticationService;
 
-    private AuthenticationRequest validRequest;
+    private User user;
 
     @BeforeEach
     void setUp() {
-        validRequest = new AuthenticationRequest("testuser", "password123");
+        user = new User(1L, "testuser", "password123");
     }
 
     @Test
@@ -54,7 +55,7 @@ public class AuthenticationServiceTest {
         when(jwtUtil.generateToken("testuser")).thenReturn("mocked-jwt-token");
 
         // Act
-        AuthenticationResponse response = authenticationService.authenticate(validRequest);
+        AuthenticationResponse response = authenticationService.authenticate(user);
 
         // Assert
         assertThat(response.getAuthToken()).isEqualTo("mocked-jwt-token");
@@ -73,7 +74,7 @@ public class AuthenticationServiceTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(new BadCredentialsException("Bad credentials"));
         UserNotFoundOrPasswordIncorrectException exception =
-                Assertions.assertThrows(UserNotFoundOrPasswordIncorrectException.class, () -> authenticationService.authenticate(validRequest));
+                Assertions.assertThrows(UserNotFoundOrPasswordIncorrectException.class, () -> authenticationService.authenticate(user));
 
         Assertions.assertEquals("Username or password is incorrect", exception.getMessage());
 

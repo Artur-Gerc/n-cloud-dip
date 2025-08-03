@@ -34,7 +34,7 @@ public class AuthController {
     @PostMapping("/sign-up")
     public ResponseEntity<AuthenticationResponse> registerUser(@RequestBody @Valid AuthenticationRequest authenticationRequest) {
 
-        User user = converAuthenticationRequestToUser(authenticationRequest);
+        User user = convertAuthenticationRequestToUser(authenticationRequest);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(new AuthenticationResponse(registrationService.registerUser(user)));
     }
@@ -42,7 +42,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> login(@RequestBody @Valid AuthenticationRequest authenticationRequest) {
 
-        return ResponseEntity.ok(authenticationService.authenticate(authenticationRequest));
+        return ResponseEntity.ok(authenticationService.authenticate(convertAuthenticationRequestToUser(authenticationRequest)));
     }
 
     @PostMapping("/logout")
@@ -54,7 +54,7 @@ public class AuthController {
         return new ResponseEntity(HttpStatus.OK);
     }
 
-    public User converAuthenticationRequestToUser(AuthenticationRequest authenticationRequest) {
+    public User convertAuthenticationRequestToUser(AuthenticationRequest authenticationRequest) {
         return modelMapper.map(authenticationRequest, User.class);
     }
 }

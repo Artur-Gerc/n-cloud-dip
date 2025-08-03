@@ -1,8 +1,8 @@
 package net.cloud.service;
 
-import net.cloud.dto.AuthenticationRequest;
 import net.cloud.dto.AuthenticationResponse;
 import net.cloud.exception.authException.UserNotFoundOrPasswordIncorrectException;
+import net.cloud.model.User;
 import net.cloud.security.JWTUtil;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,12 +25,12 @@ public class AuthenticationService {
         this.authenticationManager = authenticationManager;
     }
 
-    public AuthenticationResponse authenticate(AuthenticationRequest person) throws AuthenticationException {
+    public AuthenticationResponse authenticate(User user) throws AuthenticationException {
         Authentication authentication;
         try {
             authentication = authenticationManager
                     .authenticate(new UsernamePasswordAuthenticationToken(
-                            person.getUsername(), person.getPassword()));
+                            user.getUsername(), user.getPassword()));
 
         } catch (AuthenticationException e) {
             throw new UserNotFoundOrPasswordIncorrectException("Username or password is incorrect");
@@ -40,6 +40,6 @@ public class AuthenticationService {
         context.setAuthentication(authentication);
         securityContextHolderStrategy.setContext(context);
 
-        return new AuthenticationResponse(jwtUtil.generateToken(person.getUsername()));
+        return new AuthenticationResponse(jwtUtil.generateToken(user.getUsername()));
     }
 }

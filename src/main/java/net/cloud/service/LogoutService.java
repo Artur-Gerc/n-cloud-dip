@@ -19,5 +19,4 @@ public class LogoutService {
         String authToken = jwtUtil.getAuthToken(authHeader);
         jwtBlackList.add(usersDetails.getUsername(), authToken);
     }
-
 }

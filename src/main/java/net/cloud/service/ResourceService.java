@@ -2,6 +2,7 @@ package net.cloud.service;
 
 import io.minio.StatObjectResponse;
 import io.minio.errors.*;
+import lombok.extern.slf4j.Slf4j;
 import net.cloud.dto.ResourceResponseDto;
 import net.cloud.exception.resourceException.InternalServerErrorException;
 import net.cloud.exception.resourceException.NoDataException;
@@ -18,6 +19,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 @Service
+@Slf4j
 public class ResourceService {
 
     private final MinioService minioService;
@@ -94,12 +96,11 @@ public class ResourceService {
         try {
             minioService.uploadFile(filePath, multipartFile);
 
-//            String parentPath = PathUtil.getParentFolderPath(filePath);
             StatObjectResponse stat = minioService.getStatObject(filePath);
             resourceResponseDto = ResourceResponseDto.builder().name(fileName).size(stat.size()).build();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("Error uploading file", e);
             throw new UploadResourceException(e.getMessage());
         }
 
