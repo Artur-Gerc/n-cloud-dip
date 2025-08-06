@@ -1,5 +1,6 @@
 package net.cloud.service;
 
+import lombok.extern.slf4j.Slf4j;
 import net.cloud.exception.authException.UserExistsException;
 import net.cloud.model.User;
 import net.cloud.repository.UserRepository;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class RegistrationService {
     private final UserRepository userRepository;
@@ -27,6 +29,8 @@ public class RegistrationService {
 
     @Transactional
     public String registerUser(User user) {
+        log.info("Start registering user with username: {}", user.getUsername());
+
         Optional<User> person = userRepository.findByUsername(user.getUsername());
         if (person.isPresent()) {
             throw new UserExistsException("User with username: " + user.getUsername() + " already exists");

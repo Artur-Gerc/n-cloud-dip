@@ -6,8 +6,8 @@ import io.minio.messages.Item;
 import jakarta.annotation.PostConstruct;
 import net.cloud.config.MinioConfig;
 import net.cloud.exception.resourceException.NoDataException;
+import net.cloud.model.FileStorage;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -39,14 +39,14 @@ public class MinioService {
 
     }
 
-    public void uploadFile(String fileName, MultipartFile multipartFile) {
+    public void uploadFile(String fileName, FileStorage fileStorage) {
 
         try {
             minioClient.putObject(PutObjectArgs.builder()
                     .bucket(homeBucket)
                     .object(fileName)
-                    .stream(multipartFile.getInputStream(), multipartFile.getSize(), -1)
-                    .contentType(multipartFile.getContentType())
+                    .stream(new ByteArrayInputStream(fileStorage.getFileContent()), fileStorage.getSize(), -1)
+                    .contentType(fileStorage.getFileType())
                     .build());
 
         } catch (MinioException | IOException | NoSuchAlgorithmException | InvalidKeyException e) {

@@ -4,9 +4,11 @@ import io.minio.Result;
 import io.minio.StatObjectResponse;
 import io.minio.errors.*;
 import io.minio.messages.Item;
+import lombok.extern.slf4j.Slf4j;
 import net.cloud.dto.ResourceResponseDto;
-import net.cloud.exception.resourceException.InvalidDataException;
 import net.cloud.exception.resourceException.NoDataException;
+import net.cloud.exception.resourceException.ResourceExistException;
+import net.cloud.model.DirectoryStorage;
 import net.cloud.util.PathUtil;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class DirectoryService {
 
@@ -27,23 +30,29 @@ public class DirectoryService {
 
 
     public void createUserDirectory(Long userId) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+
+        log.info("Creating user directory for user {}", userId);
+
         String userPath = PathUtil.getUserPath(userId);
 
         boolean isUserFolderExists = minioService.isFolderExists(userPath);
 
         if (!isUserFolderExists) {
             minioService.directoryCreate(userPath);
+            log.info("Directory created: {}", userPath);
+        } else {
+            log.warn("Directory for user: {} already exists", userId);
+            throw new ResourceExistException("Directory for user " + userId + " already exists");
         }
+
+        log.info("Directory created: {}", userPath);
     }
 
-    public List<ResourceResponseDto> getDirectoryItems(String limit, Long personId) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+    public List<ResourceResponseDto> getDirectoryItems(DirectoryStorage directoryStorage) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
 
-        if (limit.chars().anyMatch(Character::isLetter)) {
-            throw new InvalidDataException("The limit must be indicated as a number");
-        }
+        Long userId = directoryStorage.getUserId();
 
-        int dataLimit = Integer.parseInt(limit);
-        String completePath = PathUtil.getUserPath(personId);
+        String completePath = PathUtil.getUserPath(userId);
 
         if (!minioService.isFolderExists(completePath)) {
             throw new NoDataException("Directory does not exist");
@@ -54,7 +63,7 @@ public class DirectoryService {
         List<ResourceResponseDto> foundElements = new ArrayList<>();
         for (Result<Item> item : results) {
 
-            if (foundElements.size() >= dataLimit) {
+            if (foundElements.size() >= directoryStorage.getLimit()) {
                 return foundElements;
             }
 
@@ -79,6 +88,9 @@ public class DirectoryService {
                         .build());
             }
         }
+
+        log.info("Getting directory items for user {}", directoryStorage.getUserId());
+
         return foundElements;
     }
 }

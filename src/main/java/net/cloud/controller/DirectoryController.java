@@ -1,6 +1,9 @@
 package net.cloud.controller;
 
 import io.minio.errors.*;
+import lombok.extern.slf4j.Slf4j;
+import net.cloud.exception.resourceException.InvalidDataException;
+import net.cloud.model.DirectoryStorage;
 import net.cloud.security.UsersDetails;
 import net.cloud.service.DirectoryService;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +16,7 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
+@Slf4j
 @RestController
 public class DirectoryController {
 
@@ -26,6 +30,16 @@ public class DirectoryController {
     public ResponseEntity<?> getDirectoryItems(@RequestParam(value = "limit") String limit,
                                                @AuthenticationPrincipal UsersDetails personDetails) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
 
-        return ResponseEntity.ok().body(directoryService.getDirectoryItems(limit, personDetails.getUser().getId()));
+        if (limit.chars().anyMatch(Character::isLetter)) {
+            log.warn("Limit contains letters {}", limit);
+            throw new InvalidDataException("The limit must be indicated as a number");
+        }
+
+        DirectoryStorage directoryStorage = DirectoryStorage.builder()
+                .limit(Integer.parseInt(limit))
+                .userId(personDetails.getUser().getId())
+                .build();
+
+        return ResponseEntity.ok().body(directoryService.getDirectoryItems(directoryStorage));
     }
 }
